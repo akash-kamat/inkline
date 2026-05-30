@@ -2,7 +2,7 @@
   "name": "Thermal Press Ultimate",
   "short_name": "Thermal Press",
   "description": "Mobile-friendly thermal art generator and printer companion.",
-  "start_url": "./thermal.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#050505",
