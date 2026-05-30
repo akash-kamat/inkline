@@ -230,11 +230,11 @@
   .meta-row span b { color: #aaa; }
 
   /* Dynamic Sections */
-  #typoControls, #nameControls {
+  #typoControls, #nameControls, #uploadControls {
     background: #1a0b02; padding: 12px; border: 1px solid #331500; border-radius: 2px;
     display: none; flex-direction: column; gap: 10px; margin-top: 4px;
   }
-  #typoControls.visible, #nameControls.visible { display: flex; }
+  #typoControls.visible, #nameControls.visible, #uploadControls.visible { display: flex; }
 
   .style-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
   .style-btn {
@@ -436,7 +436,7 @@
 <div class="layout">
   <sidebar>
     <div class="panel-section style-panel" id="stylePanel">
-      <div class="section-label">Generator Matrix (19)</div>
+      <div class="section-label">Generator Matrix (20)</div>
       <div class="coll-grid" id="collList"></div>
     </div>
 
@@ -473,7 +473,7 @@
         <div id="nameControls">
           <div class="ctrl-row">
             <label style="color:#d67a5a;">Name / Text</label>
-            <input type="text" id="nameText" class="text-input" value="ALEX" maxlength="28" placeholder="Type a name…" style="border-color:#552200;">
+            <input type="text" id="nameText" class="text-input" value="JOJO" maxlength="28" placeholder="Type a name…" style="border-color:#552200;">
           </div>
           <div class="ctrl-row">
             <label style="color:#d67a5a;">Style</label>
@@ -496,6 +496,23 @@
             </select>
           </div>
           <p class="hint">Tip: keep names short for the biggest, crispest letters. Density = border weight, Complexity = decoration.</p>
+        </div>
+
+        <!-- Upload FX controls -->
+        <div id="uploadControls">
+          <div class="ctrl-row">
+            <label style="color:#d67a5a;">Upload Image</label>
+            <input type="file" id="uploadInput" class="text-input" accept="image/*" style="border-color:#552200; padding:8px;">
+          </div>
+          <div class="ctrl-row">
+            <label style="color:#d67a5a;">Upload Style</label>
+            <div class="toggle-group" id="uploadStyleToggle">
+              <button class="toggle-btn active" data-val="onebit">1-bit</button>
+              <button class="toggle-btn" data-val="frame">Abstract Frame</button>
+              <button class="toggle-btn" data-val="halftone">Cool Halftone</button>
+            </div>
+          </div>
+          <p class="hint">Tip: upload portraits or logos. Density and Complexity still shape the look.</p>
         </div>
 
         <div class="ctrl-row" style="margin-top: 8px;">
@@ -708,6 +725,84 @@ function fitText(ctx, text, maxW, maxH, font, weight = 'bold') {
 // ════════════════════════════════════════════════════
 // COLLECTION MATRIX (19 ALGORITHMS)
 // ════════════════════════════════════════════════════
+let uploadedImage = null;
+let uploadStyle = 'onebit';
+
+function rngSeeded(v) {
+  const x = Math.sin(v * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+function drawUploadedArt(ctx, W, H, dens, comp) {
+  const innerH = H - 24;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!uploadedImage) {
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 18px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('UPLOAD AN IMAGE', W / 2, innerH / 2 - 8);
+    ctx.font = '11px monospace';
+    ctx.fillText('Use the Upload FX controls', W / 2, innerH / 2 + 16);
+    drawLabelStrip(ctx, W, H, 'UPLOAD FX');
+    return;
+  }
+
+  const iw = uploadedImage.width;
+  const ih = uploadedImage.height;
+  const scale = Math.max(W / iw, innerH / ih);
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (W - dw) / 2;
+  const dy = (innerH - dh) / 2;
+  ctx.drawImage(uploadedImage, dx, dy, dw, dh);
+
+  if (uploadStyle === 'onebit') {
+    const img = ctx.getImageData(0, 0, W, innerH);
+    thresholdImg(img, W, innerH, clamp(190 - dens, 70, 190));
+    ctx.putImageData(img, 0, 0);
+  } else if (uploadStyle === 'frame') {
+    const img = ctx.getImageData(0, 0, W, innerH);
+    ditherFS(img, W, innerH);
+    ctx.putImageData(img, 0, 0);
+    const m = 8 + Math.round(comp);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000';
+    ctx.strokeRect(m, m, W - m * 2, innerH - m * 2);
+    const loops = Math.round(10 + comp * 2 + dens * 0.12);
+    for (let i = 0; i < loops; i++) {
+      const x = rngSeeded(i * 21.17) * W;
+      const y = rngSeeded(i * 9.31) * innerH;
+      const r = 6 + rngSeeded(i * 4.7) * 24;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  } else {
+    const img = ctx.getImageData(0, 0, W, innerH);
+    const step = Math.max(4, 11 - Math.round(comp * 0.7));
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, innerH);
+    ctx.fillStyle = '#000';
+    for (let y = 0; y < innerH; y += step) {
+      for (let x = 0; x < W; x += step) {
+        const i = (y * W + x) * 4;
+        const lum = 0.299 * img.data[i] + 0.587 * img.data[i + 1] + 0.114 * img.data[i + 2];
+        const t = 1 - lum / 255;
+        const rad = (step * 0.48) * Math.pow(t, 1.3) * (dens / 55);
+        if (rad > 0.6) {
+          ctx.beginPath();
+          ctx.arc(x + step / 2, y + step / 2, rad, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  drawLabelStrip(ctx, W, H, 'UPLOAD FX');
+}
 const COLLECTIONS = [
 { id:'nametag', name:'STYLISH NAME', icon:'🏷', tag:'your name, bold',
   draw(ctx, W, H, rng, dens, comp, customText, customFont, nameText, nameStyle) {
@@ -1351,13 +1446,18 @@ const COLLECTIONS = [
     }
     drawLabelStrip(ctx, W, H, 'LOOM');
   }
+},
+{ id:'uploadfx', name:'UPLOAD FX', icon:'🖼', tag:'image to art modes',
+  draw(ctx, W, H, rng, dens, comp) {
+    drawUploadedArt(ctx, W, H, dens, comp);
+  }
 }
 ];
 
 // ════════════════════════════════════════════════════
 // UI & GENERATION LOGIC
 // ════════════════════════════════════════════════════
-let activeColl = COLLECTIONS[0].id;
+let activeColl = 'organic';
 let currentSeedStr = ''; // Maintains stable seed during live-updates
 
 const canvas = document.getElementById('artCanvas');
@@ -1373,6 +1473,9 @@ const seedInput = document.getElementById('seedInput');
 const typoControls = document.getElementById('typoControls');
 const typoText = document.getElementById('typoText');
 const typoFont = document.getElementById('typoFont');
+const uploadControls = document.getElementById('uploadControls');
+const uploadInput = document.getElementById('uploadInput');
+const uploadStyleBtns = document.querySelectorAll('#uploadStyleToggle .toggle-btn');
 
 // Stylish Name controls
 const nameControls = document.getElementById('nameControls');
@@ -1397,7 +1500,13 @@ const pxToCm = (px) => (px * (5.8 / 384)).toFixed(1) + 'cm';
 const pxToCmPad = (px) => (px * (5.8 / 384)).toFixed(2) + 'cm';
 
 // Build grid UI
-COLLECTIONS.forEach(c => {
+const uiCollections = [...COLLECTIONS].sort((a, b) => {
+  if (a.id === 'nametag') return 1;
+  if (b.id === 'nametag') return -1;
+  return 0;
+});
+
+uiCollections.forEach(c => {
   const btn = document.createElement('button');
   btn.className = 'coll-btn' + (c.id===activeColl?' active':'');
   btn.innerHTML = `<span class="c-icon">${c.icon}</span><span class="c-name">${c.name}</span><span class="c-tag">${c.tag}</span>`;
@@ -1408,6 +1517,7 @@ COLLECTIONS.forEach(c => {
     // Show/hide dynamic customizers
     typoControls.classList.toggle('visible', c.id === 'typo');
     nameControls.classList.toggle('visible', c.id === 'nametag');
+    uploadControls.classList.toggle('visible', c.id === 'uploadfx');
     renderArt();
     if (window.matchMedia('(max-width: 900px)').matches) {
       document.body.classList.remove('mobile-style-open');
@@ -1416,9 +1526,10 @@ COLLECTIONS.forEach(c => {
   collList.appendChild(btn);
 });
 
-// Initial dynamic-control visibility (nametag is default)
+// Initial dynamic-control visibility
 typoControls.classList.toggle('visible', activeColl === 'typo');
 nameControls.classList.toggle('visible', activeColl === 'nametag');
+uploadControls.classList.toggle('visible', activeColl === 'uploadfx');
 
 // Update value displays
 densitySlider.addEventListener('input', () => document.getElementById('densityVal').textContent = densitySlider.value + '%');
@@ -1440,6 +1551,34 @@ function scheduleRender() {
 });
 typoFont.addEventListener('change', scheduleRender);
 nameFont.addEventListener('change', scheduleRender);
+uploadStyleBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    uploadStyleBtns.forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    uploadStyle = e.target.dataset.val;
+    scheduleRender();
+  });
+});
+
+uploadInput.addEventListener('change', () => {
+  const file = uploadInput.files && uploadInput.files[0];
+  if (!file) return;
+  const img = new Image();
+  img.onload = () => {
+    uploadedImage = img;
+    if (activeColl !== 'uploadfx') {
+      activeColl = 'uploadfx';
+      document.querySelectorAll('.coll-btn').forEach(b => b.classList.remove('active'));
+      const uploadBtn = [...document.querySelectorAll('.coll-btn')].find(b => b.textContent.includes('UPLOAD FX'));
+      if (uploadBtn) uploadBtn.classList.add('active');
+      typoControls.classList.remove('visible');
+      nameControls.classList.remove('visible');
+      uploadControls.classList.add('visible');
+    }
+    scheduleRender();
+  };
+  img.src = URL.createObjectURL(file);
+});
 
 // Name style selector
 nameStyleBtns.forEach(btn => {
@@ -1608,6 +1747,8 @@ if ('serviceWorker' in navigator) {
 let deferredPrompt = null;
 const installBtn = document.getElementById('installBtn');
 const mobilePanelBtn = document.getElementById('mobilePanelBtn');
+const stylePanel = document.getElementById('stylePanel');
+const sidebarEl = document.querySelector('sidebar');
 const styleBackdrop = document.getElementById('styleBackdrop');
 const iosTip = document.getElementById('iosTip');
 const iosTipClose = document.getElementById('iosTipClose');
@@ -1656,9 +1797,15 @@ if (isIos() && !isInStandaloneMode() && !localStorage.getItem('iosInstallTipDism
 function syncMobileSidebarState() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
   if (isMobile) {
+    if (stylePanel.parentElement !== document.body) {
+      document.body.appendChild(stylePanel);
+    }
     mobilePanelBtn.style.display = 'inline-flex';
   } else {
     document.body.classList.remove('mobile-style-open');
+    if (stylePanel.parentElement !== sidebarEl) {
+      sidebarEl.prepend(stylePanel);
+    }
     mobilePanelBtn.style.display = 'none';
   }
 }
@@ -1677,3 +1824,6 @@ syncMobileSidebarState();
 </script>
 </body>
 </html>
+
+
+
