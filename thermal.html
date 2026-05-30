@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050505">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Thermal Press">
+<title>THERMAL PRESS ULTIMATE</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,700;1,400&family=Inter:wght@400;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #050505;
+    --ink-light: #121212;
+    --paper: #ffffff;
+    --accent: #ff4500;
+    --mid: #666;
+    --border: #222;
+    --ui-bg: #0a0a0a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--ink);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    z-index: 100;
+  }
+  .logo-area { display: flex; align-items: baseline; gap: 16px; }
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.08em;
+    color: var(--paper);
+    line-height: 1;
+  }
+  header span {
+    font-size: 0.65rem;
+    color: var(--mid);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .top-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn-install {
+    background: transparent;
+    border: 1px solid #444;
+    color: #ddd;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    padding: 8px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    text-transform: uppercase;
+    min-height: 36px;
+  }
+  .btn-install:hover { border-color: var(--accent); color: #fff; }
+  .btn-install[hidden] { display: none; }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  sidebar {
+    background: var(--ui-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 65px);
+    overflow-y: auto;
+  }
+  
+  sidebar::-webkit-scrollbar { width: 4px; }
+  sidebar::-webkit-scrollbar-track { background: var(--ui-bg); }
+  sidebar::-webkit-scrollbar-thumb { background: #333; }
+  sidebar::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  .panel-section { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+  
+  .section-label {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase;
+    color: #888; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* Collections Grid */
+  .coll-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .coll-btn {
+    background: var(--ink-light); border: 1px solid var(--border); color: #999;
+    font-family: 'Space Mono', monospace; padding: 10px 8px; text-align: left;
+    cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+  }
+  .coll-btn:hover { border-color: #444; color: var(--paper); background: #1a1a1a; }
+  .coll-btn.active { border-color: var(--accent); color: var(--paper); background: #170802; }
+  .coll-btn.active::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent);
+  }
+  .c-icon { font-size: 1rem; display: block; margin-bottom: 4px; opacity: 0.6; filter: grayscale(1); }
+  .coll-btn.active .c-icon { opacity: 1; filter: none; }
+  .c-name { display: block; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.05em;}
+  .c-tag { display: block; font-size: 0.55rem; color: var(--mid); margin-top: 2px; }
+  .coll-btn.active .c-tag { color: #c46849; }
+
+  /* Controls */
+  .controls-grid { display: flex; flex-direction: column; gap: 16px; }
+  .ctrl-row { display: flex; flex-direction: column; gap: 6px; }
+  .ctrl-row header {
+    background: none; border: none; padding: 0; position: static;
+    display: flex; justify-content: space-between; align-items: center; width: 100%;
+  }
+  .ctrl-row label { font-size: 0.65rem; letter-spacing: 0.15em; color: #aaa; text-transform: uppercase; font-weight: 700;}
+  .ctrl-val { font-size: 0.65rem; color: var(--paper); background: var(--ink-light); padding: 2px 6px; border-radius: 2px; border: 1px solid #333; }
+  
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: #333; outline: none; border-radius: 2px; cursor: pointer;}
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; cursor: pointer;
+  }
+
+  .toggle-group { display: flex; border: 1px solid #333; border-radius: 2px; overflow: hidden; }
+  .toggle-btn {
+    flex: 1; background: var(--ink-light); color: #888; border: none; padding: 8px; font-family: 'Space Mono';
+    font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: 0.2s;
+  }
+  button, input, select { touch-action: manipulation; }
+  .toggle-btn.active { background: var(--paper); color: var(--ink); font-weight: 700; }
+  .toggle-btn:not(.active):hover { background: #222; color: #ccc; }
+
+  .text-input, .select-input {
+    background: var(--ink-light); border: 1px solid #333; color: var(--paper);
+    font-family: 'Space Mono', monospace; font-size: 0.75rem; padding: 10px; width: 100%; outline: none; border-radius: 2px;
+  }
+  .text-input:focus, .select-input:focus { border-color: var(--accent); }
+  .seed-wrap { display: flex; gap: 6px; }
+  .seed-roll {
+    background: var(--ink-light); border: 1px solid #333; color: var(--mid);
+    font-size: 1rem; padding: 0 12px; cursor: pointer; border-radius: 2px; transition: 0.2s;
+  }
+  .seed-roll:hover { color: var(--paper); border-color: #555; }
+
+  /* Actions */
+  .action-panel { padding: 20px 24px; display: flex; flex-direction: column; gap: 10px; background: var(--ink); border-top: 1px solid var(--border); position: sticky; bottom: 0; z-index: 10;}
+  .btn-gen {
+    width: 100%; background: var(--accent); border: none; color: #fff;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 0.1em;
+    padding: 12px; cursor: pointer; transition: all 0.1s; border-radius: 2px;
+  }
+  .btn-gen:hover { background: #ff5a22; }
+  .btn-gen:active { transform: translateY(2px); }
+
+  .btn-dl {
+    width: 100%; background: transparent; border: 1px solid #444; color: #ccc;
+    font-family: 'Space Mono', monospace; font-size: 0.75rem; padding: 10px;
+    cursor: pointer; transition: all 0.15s; border-radius: 2px; letter-spacing: 0.1em; font-weight: 700;
+  }
+  .btn-dl:hover { border-color: var(--paper); color: var(--paper); }
+
+  /* ── Canvas area ── */
+  .canvas-area {
+    background: #030303;
+    background-image: radial-gradient(#1a1a1a 1px, transparent 0);
+    background-size: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    gap: 20px;
+    overflow-y: auto;
+    height: calc(100vh - 65px);
+  }
+
+  .print-wrapper {
+    box-shadow: 0 0 0 1px #333, 0 20px 50px rgba(0,0,0,0.9);
+    position: relative;
+  }
+
+  canvas#artCanvas { display: block; image-rendering: pixelated; }
+
+  .meta-row {
+    display: flex; gap: 24px; font-size: 0.65rem; color: #666; letter-spacing: 0.15em;
+    text-transform: uppercase; background: var(--ink-light); padding: 8px 16px;
+    border: 1px solid var(--border); border-radius: 20px; flex-wrap: wrap; justify-content: center;
+  }
+  .meta-row span b { color: #aaa; }
+
+  /* Dynamic Sections */
+  #typoControls, #nameControls {
+    background: #1a0b02; padding: 12px; border: 1px solid #331500; border-radius: 2px;
+    display: none; flex-direction: column; gap: 10px; margin-top: 4px;
+  }
+  #typoControls.visible, #nameControls.visible { display: flex; }
+
+  .style-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .style-btn {
+    background: var(--ink-light); border: 1px solid #442200; color: #d6a585;
+    font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.05em;
+    text-transform: uppercase; padding: 8px 4px; cursor: pointer; transition: 0.15s; border-radius: 2px;
+  }
+  .style-btn:hover { border-color: var(--accent); color: #fff; }
+  .style-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+
+  .hint { font-size: 0.55rem; color: var(--mid); letter-spacing: 0.05em; line-height: 1.5; }
+
+  .btn-print {
+    width: 100%; background: var(--paper); border: none; color: var(--ink);
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 0.1em;
+    padding: 10px; cursor: pointer; transition: all 0.1s; border-radius: 2px;
+  }
+  .btn-print:hover { background: #ddd; }
+  .btn-print:active { transform: translateY(2px); }
+
+  /* Hidden print surface */
+  #printSurface { display: none; }
+  
+  .ios-tip {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 999;
+    background: #111;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 12px;
+    display: none;
+    gap: 8px;
+    flex-direction: column;
+  }
+  .ios-tip.show { display: flex; }
+  .ios-tip p { font-size: 0.72rem; color: #ddd; line-height: 1.4; }
+  .ios-tip button {
+    align-self: flex-end;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+  }
+
+  @media print {
+    @page { size: 58mm auto; margin: 0; }
+    html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+    body * { visibility: hidden !important; }
+    #printSurface, #printSurface * { visibility: visible !important; }
+    #printSurface {
+      display: block !important; position: absolute; left: 0; top: 0; margin: 0; padding: 0;
+    }
+    #printSurface img {
+      display: block; width: 58mm; height: auto;
+      image-rendering: pixelated; image-rendering: crisp-edges;
+    }
+  }
+
+  @media (max-width: 900px) {
+    header {
+      padding: 12px;
+      align-items: flex-start;
+      gap: 8px;
+      flex-direction: column;
+    }
+    .logo-area { gap: 8px; align-items: flex-end; }
+    header h1 { font-size: 1.6rem; }
+    header span { font-size: 0.58rem; }
+    .top-actions { width: 100%; justify-content: flex-end; }
+    .layout {
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+    }
+    .canvas-area {
+      order: 1;
+      height: auto;
+      padding: 14px 10px 22px;
+      overflow: visible;
+    }
+    .print-wrapper {
+      width: min(100%, 440px);
+    }
+    canvas#artCanvas {
+      width: 100%;
+      height: auto;
+    }
+    .meta-row {
+      gap: 12px;
+      font-size: 0.58rem;
+      padding: 8px 10px;
+    }
+    sidebar {
+      order: 2;
+      height: auto;
+      border-right: none;
+      border-top: 1px solid var(--border);
+      overflow: visible;
+      padding-bottom: 90px;
+    }
+    .panel-section { padding: 14px 12px; }
+    .coll-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .coll-btn {
+      min-height: 72px;
+      padding: 10px;
+    }
+    .ctrl-row header { gap: 8px; }
+    input[type=range] { height: 8px; }
+    input[type=range]::-webkit-slider-thumb {
+      width: 22px;
+      height: 22px;
+    }
+    .toggle-btn, .text-input, .select-input, .seed-roll, .btn-dl, .btn-print {
+      min-height: 44px;
+    }
+    .action-panel {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 200;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 8px;
+      padding: 10px;
+      border-top: 1px solid var(--border);
+      background: rgba(10, 10, 10, 0.95);
+      backdrop-filter: blur(6px);
+    }
+    .btn-gen {
+      font-size: 1.15rem;
+      padding: 10px 8px;
+      min-height: 44px;
+    }
+    .btn-print, .btn-dl {
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      padding: 8px;
+    }
+  }
+  @media (max-width: 560px) {
+    .coll-grid { grid-template-columns: 1fr; }
+    .style-grid { grid-template-columns: 1fr 1fr; }
+    .action-panel {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <h1>THERMAL PRESS <span style="color:var(--accent)">ULTIMATE</span></h1>
+    <span>Complete Generative Suite</span>
+  </div>
+  <div class="top-actions">
+    <button id="installBtn" class="btn-install" hidden>Install App</button>
+  </div>
+</header>
+
+<div class="layout">
+  <sidebar>
+    <div class="panel-section">
+      <div class="section-label">Generator Matrix (19)</div>
+      <div class="coll-grid" id="collList"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Parameters</div>
+      <div class="controls-grid">
+        <div class="ctrl-row">
+          <header><label>Density / Fill</label><span class="ctrl-val" id="densityVal">50%</span></header>
+          <input type="range" id="densitySlider" min="1" max="100" value="50">
+        </div>
+        <div class="ctrl-row">
+          <header><label>Complexity / Chaos</label><span class="ctrl-val" id="complexVal">5</span></header>
+          <input type="range" id="complexSlider" min="1" max="10" value="5">
+        </div>
+        
+        <!-- Typography specific controls -->
+        <div id="typoControls">
+          <div class="ctrl-row">
+            <label style="color:#d67a5a;">Typographic Text</label>
+            <input type="text" id="typoText" class="text-input" value="THERMAL PRESS" style="border-color:#552200;">
+          </div>
+          <div class="ctrl-row">
+            <label style="color:#d67a5a;">Font Family</label>
+            <select id="typoFont" class="select-input" style="border-color:#552200;">
+              <option value="'Crimson Pro', serif">Serif (Crimson Pro)</option>
+              <option value="'Inter', sans-serif">Sans (Inter)</option>
+              <option value="'Bebas Neue', sans-serif" selected>Display (Bebas Neue)</option>
+              <option value="'Space Mono', monospace">Mono (Space Mono)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Stylish Name controls -->
+        <div id="nameControls">
+          <div class="ctrl-row">
+            <label style="color:#d67a5a;">Name / Text</label>
+            <input type="text" id="nameText" class="text-input" value="ALEX" maxlength="28" placeholder="Type a name…" style="border-color:#552200;">
+          </div>
+          <div class="ctrl-row">
+            <label style="color:#d67a5a;">Style</label>
+            <div class="style-grid" id="nameStyleGrid">
+              <button class="style-btn active" data-val="banner">Banner</button>
+              <button class="style-btn" data-val="block">3D Block</button>
+              <button class="style-btn" data-val="ticket">Ticket</button>
+              <button class="style-btn" data-val="outline">Outline</button>
+              <button class="style-btn" data-val="stars">Star Frame</button>
+              <button class="style-btn" data-val="stacked">Stacked</button>
+            </div>
+          </div>
+          <div class="ctrl-row">
+            <label style="color:#d67a5a;">Font Family</label>
+            <select id="nameFont" class="select-input" style="border-color:#552200;">
+              <option value="'Bebas Neue', sans-serif" selected>Display (Bebas Neue)</option>
+              <option value="'Inter', sans-serif">Sans Heavy (Inter)</option>
+              <option value="'Crimson Pro', serif">Serif (Crimson Pro)</option>
+              <option value="'Space Mono', monospace">Mono (Space Mono)</option>
+            </select>
+          </div>
+          <p class="hint">Tip: keep names short for the biggest, crispest letters. Density = border weight, Complexity = decoration.</p>
+        </div>
+
+        <div class="ctrl-row" style="margin-top: 8px;">
+          <label style="margin-bottom: 4px;">Cryptographic Seed</label>
+          <div class="seed-wrap">
+            <input type="text" class="text-input" id="seedInput" placeholder="auto" maxlength="12" style="text-align: center; letter-spacing: 0.1em;">
+            <button class="seed-roll" id="seedRoll" title="Randomize Seed">⟳</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Hardware Format</div>
+      <div class="controls-grid">
+        <div class="ctrl-row">
+          <header><label>Print Length</label><span class="ctrl-val" id="lengthVal">12.1cm</span></header>
+          <input type="range" id="lengthSlider" min="200" max="2400" step="50" value="800">
+        </div>
+        <div class="ctrl-row">
+          <header><label>Padding / Margin</label><span class="ctrl-val" id="padVal">0.30cm</span></header>
+          <input type="range" id="padSlider" min="0" max="64" step="2" value="20">
+        </div>
+        <div class="ctrl-row">
+          <header><label>Padding Color</label></header>
+          <div class="toggle-group" id="padColorToggle">
+            <button class="toggle-btn active" data-val="white">White</button>
+            <button class="toggle-btn" data-val="black">Black</button>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <header><label>Output Mode</label></header>
+          <div class="toggle-group" id="invertToggle">
+            <button class="toggle-btn active" data-val="normal">Normal</button>
+            <button class="toggle-btn" data-val="invert">Invert</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Thermal Output</div>
+      <div class="controls-grid">
+        <div class="ctrl-row">
+          <header><label>Pixel Pass</label></header>
+          <div class="toggle-group" id="thermalToggle">
+            <button class="toggle-btn active" data-val="crisp">Crisp 1-bit</button>
+            <button class="toggle-btn" data-val="dither">Dither</button>
+            <button class="toggle-btn" data-val="raw">Raw</button>
+          </div>
+        </div>
+        <div class="ctrl-row" id="thresholdRow">
+          <header><label>Black Point</label><span class="ctrl-val" id="threshVal">128</span></header>
+          <input type="range" id="threshSlider" min="40" max="220" step="2" value="128">
+        </div>
+        <p class="hint">Crisp 1-bit forces pure black &amp; white — the sharpest result on a 58&nbsp;mm thermal head. Dither softens photos/gradients. Raw leaves grayscale untouched.</p>
+      </div>
+    </div>
+
+    <div class="action-panel">
+      <button class="btn-gen" id="genBtn">▶ RANDOMIZE &amp; RENDER</button>
+      <button class="btn-print" id="printBtn">⎙ PRINT (58 MM)</button>
+      <button class="btn-dl" id="dlBtn">↓ EXPORT PNG (384 PX NATIVE)</button>
+    </div>
+  </sidebar>
+
+  <div class="canvas-area">
+    <div class="print-wrapper" id="printWrapper">
+      <canvas id="artCanvas" width="384" height="800"></canvas>
+    </div>
+    <div class="meta-row">
+      <span>algo: <b id="metaColl">—</b></span>
+      <span>seed: <b id="metaSeed">—</b></span>
+      <span><b>5.8</b> × <b id="metaH">12.1</b>cm</span>
+    </div>
+  </div>
+</div>
+
+<div id="printSurface"><img id="printImg" alt=""></div>
+<div class="ios-tip" id="iosTip">
+  <p>Add to Home Screen on iPhone: tap Share, then choose "Add to Home Screen".</p>
+  <button id="iosTipClose">Got It</button>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// CORE UTILITIES & MATH
+// ════════════════════════════════════════════════════
+function hashStr(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
+  return Math.abs(h >>> 0);
+}
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+// Simplex-like noise
+function noise2(x, y) {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const u = fx * fx * (3 - 2 * fx);
+  const v = fy * fy * (3 - 2 * fy);
+  const grad = (hx, hy, dx, dy) => {
+    const h = hashStr(`${hx},${hy}`) & 7;
+    const gx = [1,-1,1,-1,1,-1,0,0][h];
+    const gy = [1,1,-1,-1,0,0,1,-1][h];
+    return gx * dx + gy * dy;
+  };
+  return lerp(
+    lerp(grad(ix,iy,fx,fy), grad(ix+1,iy,fx-1,fy), u),
+    lerp(grad(ix,iy+1,fx,fy-1), grad(ix+1,iy+1,fx-1,fy-1), u),
+    v
+  ) * 0.5 + 0.5;
+}
+function fbm(x, y, octaves=4) {
+  let v = 0, amp = 0.5, freq = 1, max = 0;
+  for (let i = 0; i < octaves; i++) {
+    v += noise2(x * freq, y * freq) * amp;
+    max += amp; amp *= 0.5; freq *= 2.1;
+  }
+  return v / max;
+}
+
+// Ordered Dithering Matrix (4x4 Bayer) - Fast
+const bayerMatrix = [
+  [ 0/16,  8/16,  2/16, 10/16],
+  [12/16,  4/16, 14/16,  6/16],
+  [ 3/16, 11/16,  1/16,  9/16],
+  [15/16,  7/16, 13/16,  5/16]
+];
+
+// Floyd-Steinberg dithering - High Quality
+function ditherFS(img, W, H) {
+  const d = img.data;
+  const buf = new Float32Array(W * H);
+  for (let i = 0; i < W * H; i++) buf[i] = 0.299*d[i*4] + 0.587*d[i*4+1] + 0.114*d[i*4+2];
+  
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = y*W+x;
+      const old = buf[idx];
+      const nv = old < 128 ? 0 : 255;
+      buf[idx] = nv;
+      const err = old - nv;
+      if (x+1 < W)   buf[idx+1]     += err * 7/16;
+      if (y+1 < H) {
+        if (x > 0)   buf[idx+W-1]   += err * 3/16;
+                     buf[idx+W]     += err * 5/16;
+        if (x+1 < W) buf[idx+W+1]   += err * 1/16;
+      }
+    }
+  }
+  for (let i = 0; i < W*H; i++) {
+    const v = clamp(buf[i], 0, 255);
+    d[i*4]=d[i*4+1]=d[i*4+2]=v; d[i*4+3]=255;
+  }
+}
+
+function thresholdImg(img, W, H, thresh = 128) {
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const lum = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+    const v = lum < thresh ? 0 : 255;
+    d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+  }
+}
+
+function setPixel(d, W, x, y, v) {
+  if (x<0||x>=W||y<0) return;
+  const i = (y*W+x)*4;
+  d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+}
+
+function drawLabelStrip(ctx, W, H, name, invert=false) {
+  ctx.save();
+  ctx.fillStyle = invert ? '#fff' : '#000';
+  ctx.fillRect(0, H-22, W, 22);
+  ctx.fillStyle = invert ? '#000' : '#fff';
+  ctx.font = 'bold 10px monospace';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(name, 10, H-10);
+  ctx.textAlign = 'right';
+  ctx.font = '8px monospace';
+  ctx.fillText('THERMAL PRESS', W-10, H-10);
+  ctx.restore();
+}
+
+// Binary-search the largest font size that fits within maxW (and optional maxH)
+function fitText(ctx, text, maxW, maxH, font, weight = 'bold') {
+  let lo = 6, hi = Math.floor(maxH || 600), best = 6;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    ctx.font = `${weight} ${mid}px ${font}`;
+    if (ctx.measureText(text).width <= maxW) { best = mid; lo = mid + 1; }
+    else hi = mid - 1;
+  }
+  ctx.font = `${weight} ${best}px ${font}`;
+  return best;
+}
+
+// ════════════════════════════════════════════════════
+// COLLECTION MATRIX (19 ALGORITHMS)
+// ════════════════════════════════════════════════════
+const COLLECTIONS = [
+{ id:'nametag', name:'STYLISH NAME', icon:'🏷', tag:'your name, bold',
+  draw(ctx, W, H, rng, dens, comp, customText, customFont, nameText, nameStyle) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#000'; ctx.strokeStyle='#000';
+    const font = nameFont.value || "'Bebas Neue', sans-serif";
+    const style = nameStyle || 'banner';
+    let name = (nameText || '').trim();
+    if (!name) name = 'YOUR NAME';
+    name = name.toUpperCase();
+    const innerH = H - 24;            // reserve label strip
+    const cx = W / 2;
+
+    // ── BANNER: framed nameplate ──────────────────────
+    if (style === 'banner') {
+      const m = 10, bw = 1 + Math.round(dens / 28); // border weight
+      ctx.lineWidth = bw;
+      ctx.strokeRect(m, m, W - m*2, innerH - m*2);
+      ctx.lineWidth = 1;
+      ctx.strokeRect(m + bw + 4, m + bw + 4, W - (m + bw + 4)*2, innerH - (m + bw + 4)*2);
+      // corner ticks
+      const t = 14;
+      [[m,m,1,1],[W-m,m,-1,1],[m,innerH-m,1,-1],[W-m,innerH-m,-1,-1]].forEach(([x,y,sx,sy])=>{
+        ctx.lineWidth = bw + 1; ctx.beginPath();
+        ctx.moveTo(x, y + sy*t); ctx.lineTo(x, y); ctx.lineTo(x + sx*t, y); ctx.stroke();
+      });
+      const pad = m + bw + 18;
+      const fs = fitText(ctx, name, W - pad*2, innerH * 0.5, font);
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.font = `bold ${fs}px ${font}`;
+      ctx.fillText(name, cx, innerH/2);
+      if (comp > 3) {
+        const deco = Array.from({length: Math.min(7, 1+Math.round(comp*0.6))}).map(()=>'◆').join('  ');
+        ctx.font = `20px sans-serif`;
+        ctx.fillStyle = '#000';
+        ctx.fillText(deco, cx, m + bw + 30);
+        ctx.fillText(deco, cx, innerH - m - bw - 30);
+      }
+    }
+
+    // ── 3D BLOCK: layered shadow letters ──────────────
+    else if (style === 'block') {
+      const fs = fitText(ctx, name, W - 24, innerH * 0.8, font);
+      ctx.font = `bold ${fs}px ${font}`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      const off = 3 + Math.round(dens / 18);
+      // solid shadow stack
+      ctx.fillStyle = '#000';
+      for (let i = off; i >= 1; i--) ctx.fillText(name, cx + i, innerH/2 + i);
+      // face: white fill + black outline
+      ctx.fillStyle = '#fff';
+      ctx.fillText(name, cx, innerH/2);
+      ctx.lineWidth = Math.max(2, Math.round(fs/40));
+      ctx.strokeStyle = '#000';
+      ctx.strokeText(name, cx, innerH/2);
+    }
+
+    // ── TICKET: receipt-style header ──────────────────
+    else if (style === 'ticket') {
+      const dash = (y) => { ctx.lineWidth=1; ctx.setLineDash([6,5]); ctx.beginPath(); ctx.moveTo(8,y); ctx.lineTo(W-8,y); ctx.stroke(); ctx.setLineDash([]); };
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      dash(18);
+      ctx.font = '18px sans-serif'; ctx.fillStyle='#000';
+      ctx.fillText('★   ★   ★', cx, 38);
+      const fs = fitText(ctx, name, W - 28, innerH * 0.42, font);
+      ctx.font = `bold ${fs}px ${font}`;
+      ctx.fillText(name, cx, innerH * 0.40);
+      // footer code line
+      const code = (Math.floor(rng()*9000)+1000);
+      ctx.font = '11px monospace';
+      ctx.fillText('NO. ' + code + '   •   ADMIT ONE', cx, innerH * 0.40 + fs*0.55 + 14);
+      // faux barcode
+      const bcY = innerH - 60, bcH = 34; let x = 18;
+      ctx.fillStyle = '#000';
+      while (x < W - 18) { const w = 1 + Math.floor(rng()*4); if (rng() > 0.35) ctx.fillRect(x, bcY, w, bcH); x += w + 1 + Math.floor(rng()*3); }
+      dash(innerH - 14);
+    }
+
+    // ── OUTLINE: hollow display letters ───────────────
+    else if (style === 'outline') {
+      const fs = fitText(ctx, name, W - 20, innerH * 0.82, font);
+      ctx.font = `bold ${fs}px ${font}`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.lineWidth = Math.max(2, 1 + Math.round(dens/24));
+      ctx.strokeStyle = '#000';
+      ctx.strokeText(name, cx, innerH/2);
+      if (comp > 5) { ctx.lineWidth = 1; ctx.strokeText(name, cx + 3, innerH/2 + 3); }
+    }
+
+    // ── STAR FRAME: stars above/below + side rails ────
+    else if (style === 'stars') {
+      const fs = fitText(ctx, name, W - 36, innerH * 0.5, font);
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      const starN = Math.max(5, Math.round(W / 22));
+      const starRow = Array.from({length: starN}).map(()=>'★').join(' ');
+      ctx.font = `${Math.round(W/starN*0.9)}px monospace`;
+      ctx.fillText(starRow, cx, 26);
+      ctx.fillText(starRow, cx, innerH - 26);
+      // side rails
+      const rails = Math.round(innerH / 26);
+      ctx.font = '13px monospace';
+      for (let i=1;i<rails;i++){ const y = i*(innerH/rails); ctx.fillText('★', 12, y); ctx.fillText('★', W-12, y); }
+      ctx.font = `bold ${fs}px ${font}`;
+      ctx.fillText(name, cx, innerH/2);
+    }
+
+    // ── STACKED: one token per line, fills height ─────
+    else if (style === 'stacked') {
+      const tokens = name.includes(' ') ? name.split(/\s+/).filter(Boolean) : name.split('');
+      const n = tokens.length || 1;
+      const lineH = innerH / n;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      tokens.forEach((tok, i) => {
+        const fs = fitText(ctx, tok, W - 16, lineH * 0.86, font);
+        ctx.font = `bold ${fs}px ${font}`;
+        ctx.fillStyle = '#000';
+        ctx.fillText(tok, cx, lineH * (i + 0.5));
+      });
+      if (comp > 4) { ctx.lineWidth=2; ctx.strokeRect(5,5,W-10,innerH-10); }
+    }
+
+    drawLabelStrip(ctx, W, H, 'NAME');
+  }
+},
+{ id:'void', name:'VOID', icon:'🌑', tag:'space static',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const img = ctx.getImageData(0,0,W,H);
+    const oct = Math.round(2 + comp * 0.6);
+    const scale = 80 - comp * 5;
+    const thresh = 0.25 + (dens/100)*0.55;
+    for (let y=0;y<H;y++) for (let x=0;x<W;x++) {
+      const n = fbm(x/scale, y/scale, oct);
+      const i=(y*W+x)*4; img.data[i]=img.data[i+1]=img.data[i+2]=Math.round(n*255); img.data[i+3]=255;
+    }
+    ditherFS(img, W, H);
+    const stars = Math.round((W*H/5000) * dens * comp);
+    for (let s=0;s<stars;s++) {
+      const cx=Math.round(rng()*W), cy=Math.round(rng()*H), r=rng()*2.5;
+      for (let dy=-r;dy<=r;dy++) for (let dx=-r;dx<=r;dx++) {
+        if (dx*dx+dy*dy<=r*r) setPixel(img.data, W, cx+dx, cy+dy, 0);
+      }
+    }
+    ctx.putImageData(img,0,0);
+    drawLabelStrip(ctx,W,H,'VOID');
+  }
+},
+{ id:'architect', name:'ARCHITECT', icon:'📐', tag:'iso blueprint',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#000';
+    const g = Math.max(4, Math.round(20 - comp * 1.5));
+    ctx.lineWidth=0.4;
+    for (let x=0;x<=W;x+=g){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for (let y=0;y<=H;y+=g){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    const boxes = Math.round((H/150) * (2 + comp));
+    for (let b=0;b<boxes;b++) {
+      const cx=40+rng()*(W-80), cy=40+rng()*(H-100);
+      const bw=25+rng()*70, bh=15+rng()*50, bd=12+rng()*25, hw=bw/2;
+      ctx.lineWidth=1.5;
+      const top=[[cx,cy-bh],[cx+hw,cy-bh+bd/2],[cx+hw,cy+bd/2],[cx,cy],[cx-hw,cy+bd/2],[cx-hw,cy-bh+bd/2]];
+      ctx.beginPath(); ctx.moveTo(...top[0]); top.forEach(p=>ctx.lineTo(...p)); ctx.closePath(); ctx.stroke();
+      [[cx,cy],[cx+hw,cy+bd/2],[cx-hw,cy+bd/2]].forEach(([ex,ey])=>{
+        ctx.beginPath();ctx.moveTo(ex,ey-bh);ctx.lineTo(ex,ey);ctx.stroke();
+      });
+      if (dens>50){ctx.fillStyle='rgba(0,0,0,0.12)';ctx.beginPath();ctx.moveTo(cx,cy-bh);ctx.lineTo(cx+hw,cy-bh+bd/2);ctx.lineTo(cx+hw,cy+bd/2);ctx.lineTo(cx,cy);ctx.fill();}
+      if (dens>70){ctx.fillStyle='rgba(0,0,0,0.22)';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx-hw,cy+bd/2);ctx.lineTo(cx-hw,cy-bh+bd/2);ctx.lineTo(cx,cy-bh);ctx.fill();}
+    }
+    for (let i=0;i<Math.round((H/100)*comp);i++) {
+      const x1=10+rng()*(W-20),y1=10+rng()*(H-20),x2=10+rng()*(W-20),y2=10+rng()*(H-20);
+      ctx.lineWidth=0.4; ctx.setLineDash([2,5]); ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke(); ctx.setLineDash([]);
+      const a=Math.atan2(y2-y1,x2-x1);
+      [[x1,y1,a+Math.PI],[x2,y2,a]].forEach(([ax,ay,aa])=>{
+        ctx.lineWidth=0.8; ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax+Math.cos(aa+0.4)*7,ay+Math.sin(aa+0.4)*7);ctx.moveTo(ax,ay);ctx.lineTo(ax+Math.cos(aa-0.4)*7,ay+Math.sin(aa-0.4)*7);ctx.stroke();
+      });
+    }
+    drawLabelStrip(ctx,W,H,'ARCHITECT');
+  }
+},
+{ id:'organic', name:'ORGANIC', icon:'🌿', tag:'flow contours',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#000';
+    const seed=rng()*500;
+    const lines=Math.round((H/30)+dens*1.5);
+    const steps=Math.round(60+comp*35);
+    for (let l=0;l<lines;l++) {
+      let x=rng()*W, y=rng()*H;
+      ctx.lineWidth=0.3+rng()*1.5; ctx.beginPath(); ctx.moveTo(x,y);
+      for (let s=0;s<steps;s++) {
+        const n=noise2(x/120+seed, y/120+seed)*Math.PI*6;
+        x+=Math.cos(n)*2.5; y+=Math.sin(n)*2.5;
+        if(x<0||x>W||y<0||y>H) break;
+        ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    for (let c=0;c<Math.round((H/200)*comp);c++) {
+      const cx=rng()*W, cy=rng()*H;
+      for (let r=10; r<50+rng()*120; r+=7+rng()*5) {
+        ctx.lineWidth=r<25?1.8:0.5; ctx.beginPath();
+        ctx.ellipse(cx,cy,r*(0.6+rng()*0.8),r*(0.6+rng()*0.8),rng()*Math.PI,0,Math.PI*2); ctx.stroke();
+      }
+    }
+    drawLabelStrip(ctx,W,H,'ORGANIC');
+  }
+},
+{ id:'signal', name:'SIGNAL', icon:'📡', tag:'waveform traces',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const tracks=Math.max(2, Math.round((H/120) * comp));
+    const th=H/tracks;
+    for (let t=0;t<tracks;t++) {
+      const cy=th*t+th/2; const amp=th*0.35*(dens/100); const freq=0.5+rng()*comp*0.9;
+      const type=Math.floor(rng()*5); const phase=rng()*Math.PI*2;
+      ctx.lineWidth=0.6+rng()*1.2; ctx.strokeStyle='#000'; ctx.beginPath();
+      for (let x=0;x<W;x++) {
+        const tt=x/W*freq*Math.PI*10+phase; let y;
+        if(type===0) y=cy+Math.sin(tt)*amp;
+        else if(type===1) y=cy+(Math.sin(tt)>0?1:-1)*amp;
+        else if(type===2) y=cy+((tt%(Math.PI*2))/(Math.PI*2)*2-1)*amp;
+        else if(type===3) y=cy+(rng()*2-1)*amp;
+        else y=cy+Math.sin(tt)*amp*Math.sin(tt*0.15);
+        x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.lineWidth=0.3; ctx.setLineDash([1,8]); ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke(); ctx.setLineDash([]);
+      ctx.lineWidth=0.5; for (let x=0;x<W;x+=16) { ctx.beginPath();ctx.moveTo(x,cy-3);ctx.lineTo(x,cy+3);ctx.stroke(); }
+    }
+    drawLabelStrip(ctx,W,H,'SIGNAL');
+  }
+},
+{ id:'fracture', name:'FRACTURE', icon:'💠', tag:'shatter voronoi',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const npts=Math.round((W*H/5000) * (comp/5));
+    const pts=Array.from({length:npts},()=>[rng()*W,rng()*H]);
+    const img=ctx.getImageData(0,0,W,H); const d=img.data; const ci=new Int32Array(W*H);
+    const d1=new Float32Array(W*H).fill(Infinity), d2=new Float32Array(W*H).fill(Infinity);
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++) {
+      let b1=Infinity,b2=Infinity,bi=0;
+      for(let p=0;p<pts.length;p++){
+        const dx=x-pts[p][0],dy=y-pts[p][1],dist=dx*dx+dy*dy;
+        if(dist<b1){b2=b1;b1=dist;bi=p;}else if(dist<b2)b2=dist;
+      }
+      const idx=y*W+x; ci[idx]=bi; d1[idx]=b1; d2[idx]=b2;
+    }
+    const thick=Math.round(1+dens/35);
+    const fillSet=new Set(); const fc=Math.round(npts*(dens/100)*0.7);
+    while(fillSet.size<fc) fillSet.add(Math.floor(rng()*npts));
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++) {
+      const idx=y*W+x; const edge=Math.sqrt(d2[idx])-Math.sqrt(d1[idx])<thick;
+      const val=edge?0:(fillSet.has(ci[idx])?0:255);
+      const i=idx*4; d[i]=d[i+1]=d[i+2]=val; d[i+3]=255;
+    }
+    ctx.putImageData(img,0,0); drawLabelStrip(ctx,W,H,'FRACTURE');
+  }
+},
+{ id:'ritual', name:'RITUAL', icon:'🔯', tag:'sacred mandala',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const cx=W/2, cy=H/2; const rings=Math.round(4+comp*1.8); const spokes=Math.round(4+comp)*2;
+    const maxR=Math.min(W,H)*0.45; ctx.strokeStyle='#000';
+    for(let r=0;r<rings;r++) {
+      const rad=maxR*(r+1)/rings; ctx.lineWidth=r===rings-1?2:0.6;
+      ctx.beginPath();ctx.arc(cx,cy,rad,0,Math.PI*2);ctx.stroke();
+      if(r%2===0) for(let s=0;s<spokes;s++){
+        const a=(s/spokes)*Math.PI*2, ir=r?maxR*r/rings:0;
+        ctx.lineWidth=0.4; ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*ir,cy+Math.sin(a)*ir);
+        ctx.lineTo(cx+Math.cos(a)*rad,cy+Math.sin(a)*rad);ctx.stroke();
+      }
+    }
+    const petals=Math.round(3+comp);
+    for(let p=0;p<petals;p++) {
+      const a=(p/petals)*Math.PI*2, pr=maxR*0.35, pr2=maxR*0.18;
+      ctx.lineWidth=0.8; ctx.beginPath(); ctx.moveTo(cx,cy);
+      ctx.bezierCurveTo(cx+Math.cos(a-0.5)*pr,cy+Math.sin(a-0.5)*pr, cx+Math.cos(a+0.5)*pr,cy+Math.sin(a+0.5)*pr, cx+Math.cos(a)*pr2*2,cy+Math.sin(a)*pr2*2);
+      if(dens>55){ctx.fillStyle='rgba(0,0,0,0.12)';ctx.fill();} ctx.stroke();
+    }
+    const sp=Math.round(3+comp*0.5), or=maxR*0.22,ir=maxR*0.1;
+    ctx.lineWidth=1.5; ctx.beginPath();
+    for(let s=0;s<sp*2;s++){
+      const a=(s/(sp*2))*Math.PI*2-Math.PI/2, rr=s%2===0?or:ir;
+      s===0?ctx.moveTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr):ctx.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr);
+    }
+    ctx.closePath(); if(dens>45){ctx.fillStyle='#000';ctx.fill();}else ctx.stroke();
+    drawLabelStrip(ctx,W,H,'RITUAL');
+  }
+},
+{ id:'glitch', name:'GLITCH', icon:'⚡', tag:'pixel tear shift',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    for(let y=0;y<H;y+=rng()<0.3?1:2) {
+      const len=rng()*W*0.9, x=rng()*(W-len), g=Math.floor(rng()*4)*64;
+      ctx.fillStyle=`rgb(${g},${g},${g})`; ctx.fillRect(x,y,len,1+Math.floor(rng()*2));
+    }
+    const img=ctx.getImageData(0,0,W,H), bands=Math.round((H/50)+dens*0.35);
+    for(let b=0;b<bands;b++) {
+      const by=Math.floor(rng()*H), bh=Math.floor(2+rng()*18*(comp/10)), shift=Math.floor((rng()-0.5)*120*(comp/10));
+      const slice=new Uint8ClampedArray(Math.min(bh,H-by)*W*4);
+      for(let y=0;y<Math.min(bh,H-by);y++) slice.set(img.data.subarray((by+y)*W*4,(by+y+1)*W*4),y*W*4);
+      for(let y=0;y<Math.min(bh,H-by);y++) {
+        const dy=by+y;
+        for(let x=0;x<W;x++){
+          const sx=((x+shift)%W+W)%W, si=y*W*4+sx*4,di=dy*W*4+x*4;
+          img.data[di]=slice[si];img.data[di+1]=slice[si+1];img.data[di+2]=slice[si+2];img.data[di+3]=255;
+        }
+      }
+    }
+    for(let i=0;i<Math.round((H/150)*comp*4);i++){
+      const y=Math.floor(rng()*H);
+      for(let x=0;x<W;x++){const idx=(y*W+x)*4;img.data[idx]=255-img.data[idx];img.data[idx+1]=255-img.data[idx+1];img.data[idx+2]=255-img.data[idx+2];}
+    }
+    for(let y=0;y<H;y+=3) for(let x=0;x<W;x++){const idx=(y*W+x)*4;img.data[idx]=img.data[idx+1]=img.data[idx+2]=Math.min(255,img.data[idx]+40);}
+    thresholdImg(img,W,H,128); ctx.putImageData(img,0,0); drawLabelStrip(ctx,W,H,'GLITCH');
+  }
+},
+{ id:'forest', name:'FOREST', icon:'🌲', tag:'branch recursive',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#000';
+    function branch(x,y,angle,len,depth) {
+      if(depth<=0||len<1.5) return;
+      const ex=x+Math.cos(angle)*len,ey=y+Math.sin(angle)*len;
+      ctx.lineWidth=Math.max(0.3,depth*0.45); ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.stroke();
+      const nb=rng()>0.25?2:3, spread=0.25+rng()*0.45;
+      for(let b=0;b<nb;b++){
+        const da=(b/(nb-1)-0.5)*spread*2; branch(ex,ey,angle+da+(rng()-0.5)*0.18,len*(0.58+rng()*0.22),depth-1);
+      }
+      if(depth<=2&&dens>25){ctx.fillStyle='#000';ctx.beginPath();ctx.arc(ex,ey,1.2,0,Math.PI*2);ctx.fill();}
+    }
+    const trees=Math.round(1+comp*0.4);
+    for(let t=0;t<trees;t++){
+      const tx=W*(0.1+t*(0.8/Math.max(trees-1,1))+rng()*0.05);
+      branch(tx,H-26,-Math.PI/2+(rng()-0.5)*0.2,Math.min(H*0.15, 70+rng()*40),Math.round(5+comp*0.7));
+    }
+    ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,H-26);ctx.lineTo(W,H-26);ctx.stroke();
+    for(let t=0;t<trees;t++){
+      const tx=W*(0.1+t*(0.8/Math.max(trees-1,1))+rng()*0.05);
+      branch(tx,H-26,Math.PI/2+(rng()-0.5)*0.3,35+rng()*18,Math.round(3+comp*0.35));
+    }
+    drawLabelStrip(ctx,W,H,'FOREST');
+  }
+},
+{ id:'ascii', name:'ASCII ART', icon:'⌨️', tag:'text mapping scenes',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const fontSize=Math.max(6, Math.round(7+Math.floor((1-comp/10)*5)));
+    ctx.font=`${fontSize}px monospace`; ctx.fillStyle='#000'; ctx.textBaseline='top';
+    const charW=fontSize*0.6, charH=fontSize*1.1;
+    const cols=Math.floor(W/charW), rows=Math.floor((H-24)/charH);
+    const charsets=[' .:-=+*#%@', ' ░▒▓█', ' .,;:!|/\\*#', ' `^",:;Il!i><~+_-?][}{)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'];
+    const charset=charsets[Math.floor(rng()*charsets.length)];
+    const scenes=['mountain','city','face','wave','random']; const scene=scenes[Math.floor(rng()*scenes.length)];
+    for(let row=0;row<rows;row++) {
+      for(let col=0;col<cols;col++) {
+        let v; const nx=col/cols, ny=row/rows;
+        if(scene==='mountain') {
+          const ridge=0.35+noise2(nx*3+10,0.5)*0.25, side=noise2(nx*4+5,ny*2+8)*0.15;
+          v=ny>ridge+side?1:(1-(ny/(ridge+side)))*0.8+noise2(nx*8,ny*8)*0.2;
+        } else if(scene==='city') {
+          const bldg=Math.floor(nx*8), height=0.2+noise2(bldg+20,0.5)*0.55;
+          v=ny>(1-height)?1:ny>(0.95-height)?0.6:0.05+noise2(col*0.3,row*0.3)*0.15;
+        } else if(scene==='face') {
+          const dx=nx-0.5,dy=ny-0.45, head=dx*dx*1.2+dy*dy<0.08;
+          const leye=(dx+0.15)*(dx+0.15)*4+(dy+0.05)*(dy+0.05)*9<0.012, reye=(dx-0.15)*(dx-0.15)*4+(dy+0.05)*(dy+0.05)*9<0.012;
+          const smile=dy>0.12&&dy<0.18&&Math.abs(dx)<0.15&&Math.abs(Math.abs(dx)-0.12)<0.04;
+          v=leye||reye||smile?1:head?(0.15+noise2(col,row)*0.1):0;
+        } else if(scene==='wave') {
+          const wave=0.5+Math.sin(nx*Math.PI*4+rng()*0.5)*0.28+Math.sin(nx*Math.PI*7)*0.1;
+          v=Math.abs(ny-wave)<0.04?1:ny>wave?(0.1+noise2(nx*3,ny*3)*0.15):0.02;
+        } else {
+          v=fbm(nx*(2+comp),ny*(2+comp),3);
+        }
+        v=clamp(v*(dens/50),0,1); const ci=Math.round(v*(charset.length-1));
+        ctx.fillText(charset[ci]||' ', col*charW, row*charH);
+      }
+    }
+    drawLabelStrip(ctx,W,H,'ASCII ART');
+  }
+},
+{ id:'emoji', name:'EMOJI RAIN', icon:'🎴', tag:'symbols pattern',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const sets=[['★','☆','✦','✧','✩','✪','✫','✬','✭','✮','✯'],['●','○','◉','◎','◍','◌','◦','⦿','⊙','◐','◑'],['▲','△','▽','▼','◁','▷','◆','◇','◈','❖','⬡'],['❤','♠','♣','♦','♥','⚡','☢','☣','☯','☮','⚔'],['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'],['⣿','⣷','⣯','⣟','⡿','⢿','⣻','⣽','⣾'],['░','▒','▓','█','▄','▀','▌','▐','■','□','▪']];
+    const eset=sets[Math.floor(rng()*sets.length)];
+    const fsize=Math.max(8, Math.round(8+comp*1.5*(dens/60)));
+    ctx.font=`${fsize}px monospace`; ctx.textBaseline='top';
+    const cols=Math.floor(W/(fsize*0.85)), rows=Math.floor((H-24)/(fsize*1.1)), noiseScale=2+comp*0.5;
+    for(let row=0;row<rows;row++) {
+      for(let col=0;col<cols;col++) {
+        const nx=col/cols, ny=row/rows, n=fbm(nx*noiseScale,ny*noiseScale,3);
+        if(n>(1-dens/110)) {
+          const ch=eset[Math.floor(n*(eset.length))%eset.length];
+          ctx.fillStyle='#000'; ctx.fillText(ch, col*(fsize*0.85), row*(fsize*1.1));
+        }
+      }
+    }
+    drawLabelStrip(ctx,W,H,'EMOJI RAIN');
+  }
+},
+{ id:'typo', name:'TYPOGRAPHY', icon:'Aa', tag:'custom letters fill',
+  draw(ctx, W, H, rng, dens, comp, customText, customFont) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    
+    // Parse custom inputs
+    const safeText = customText.trim() || 'THERMAL PRESS';
+    const mainLetter = safeText.charAt(0).toUpperCase();
+    const phrase = safeText.toUpperCase() + ' ';
+    
+    // Big Background Letter
+    const bigSize=Math.min(W,H-24)*1.2;
+    ctx.font=`bold ${bigSize}px ${customFont}`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(0,0,0,0.07)';
+    ctx.fillText(mainLetter, W/2, (H-24)/2);
+    
+    // Fill with tiny text
+    const fillSize=Math.max(6, Math.round(6+comp*0.6));
+    ctx.font=`${fillSize}px monospace`; // Keep fill mono for alignment
+    ctx.textBaseline='top';ctx.textAlign='left';
+    ctx.fillStyle='#000';
+    
+    // Mask Canvas
+    const maskCanvas=document.createElement('canvas'); maskCanvas.width=W;maskCanvas.height=H;
+    const mctx=maskCanvas.getContext('2d');
+    mctx.fillStyle='#fff';mctx.fillRect(0,0,W,H);
+    mctx.font=`bold ${bigSize}px ${customFont}`;
+    mctx.textAlign='center';mctx.textBaseline='middle'; mctx.fillStyle='#000';
+    mctx.fillText(mainLetter,W/2,(H-24)/2);
+    const mimg=mctx.getImageData(0,0,W,H);
+    
+    let ci=0;
+    for(let y=0;y<H-24;y+=fillSize*1.15) {
+      for(let x=0;x<W;x+=fillSize*0.62) {
+        const px=Math.round(x),py=Math.round(y);
+        if(px<W&&py<H){
+          const idx2=(py*W+px)*4, inside=mimg.data[idx2]<128;
+          if(inside||(dens>50&&noise2(x/25,y/25)>0.55)){
+            ctx.fillText(phrase[ci%phrase.length],x,y); ci++;
+          }
+        }
+      }
+    }
+    drawLabelStrip(ctx,W,H,'TYPOGRAPHY');
+  }
+},
+{ id:'gradient', name:'GRADIENT', icon:'🌅', tag:'dither radial conic',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const img=ctx.getImageData(0,0,W,H), d=img.data, mode=Math.floor(rng()*6);
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++) {
+      let v; const nx=x/W, ny=y/H;
+      if(mode===0) v=nx; else if(mode===1) v=ny; else if(mode===2) v=(nx+ny)/2;
+      else if(mode===3) v=clamp(Math.sqrt((nx-0.5)*(nx-0.5)*1.4+(ny-0.5)*(ny-0.5)*1.4),0,1);
+      else if(mode===4) v=(Math.atan2(ny-0.5,nx-0.5)+Math.PI)/(Math.PI*2);
+      else v=fbm(nx*(1+comp*0.4)+10,ny*(1+comp*0.4)+10,3)*0.7+ny*0.3;
+      
+      const steps=Math.round(2+comp*0.8*(dens/60)), qv=Math.round(v*steps)/steps;
+      const lv=Math.round(qv*255), i=(y*W+x)*4; d[i]=d[i+1]=d[i+2]=lv; d[i+3]=255;
+    }
+    ditherFS(img,W,H); ctx.putImageData(img,0,0);
+    if(dens>40) {
+      const steps=Math.round(2+comp*0.8*(dens/60)); ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=0.3;
+      for(let s=1;s<steps;s++) {
+        const t=s/steps;
+        if(mode===0){ctx.beginPath();ctx.moveTo(t*W,0);ctx.lineTo(t*W,H);ctx.stroke();}
+        else if(mode===1){ctx.beginPath();ctx.moveTo(0,t*H);ctx.lineTo(W,t*H);ctx.stroke();}
+      }
+    }
+    drawLabelStrip(ctx,W,H,'GRADIENT');
+  }
+},
+{ id:'circuit', name:'CIRCUIT', icon:'🔌', tag:'PCB traces vias',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#000';
+    const grid=Math.max(8, Math.round(16-comp)), nodes=[];
+    for(let x=grid;x<W-grid;x+=grid) for(let y=grid;y<H-grid-24;y+=grid) {
+      if(rng()<dens/200) nodes.push([x,y]);
+    }
+    ctx.lineWidth=1.5;
+    for(let i=0;i<nodes.length;i++) {
+      for(let j=i+1;j<nodes.length;j++) {
+        const dx=nodes[j][0]-nodes[i][0],dy=nodes[j][1]-nodes[i][1], dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<grid*2.5&&rng()<0.5) {
+          const mid=rng()>0.5?[nodes[i][0],nodes[j][1]]:[nodes[j][0],nodes[i][1]];
+          ctx.beginPath();ctx.moveTo(nodes[i][0],nodes[i][1]);ctx.lineTo(mid[0],mid[1]);ctx.lineTo(nodes[j][0],nodes[j][1]);ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach(([x,y])=>{
+      ctx.fillStyle='#000'; ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fff'; ctx.beginPath();ctx.arc(x,y,1.2,0,Math.PI*2);ctx.fill();
+      if(dens>60&&rng()<0.3){ ctx.strokeStyle='#000';ctx.lineWidth=0.5; ctx.beginPath();ctx.arc(x,y,5.5,0,Math.PI*2);ctx.stroke(); }
+    });
+    if(dens>70) {
+      const img=ctx.getImageData(0,0,W,H);
+      for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+        const i=(y*W+x)*4; if(img.data[i]===255&&noise2(x/8,y/8)>0.72){img.data[i]=img.data[i+1]=img.data[i+2]=180;}
+      }
+      ctx.putImageData(img,0,0);
+    }
+    drawLabelStrip(ctx,W,H,'CIRCUIT');
+  }
+},
+{ id:'weather', name:'WEATHER', icon:'⛈', tag:'storm lightning',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.strokeStyle='#000';
+    function cloud(cx,cy,scale) {
+      ctx.save();ctx.translate(cx,cy);ctx.scale(scale,scale); ctx.lineWidth=1.5/scale; ctx.beginPath();
+      ctx.arc(0,0,20,0,Math.PI*2);ctx.arc(-20,-5,15,0,Math.PI*2);ctx.arc(20,-5,18,0,Math.PI*2);ctx.arc(-5,-18,12,0,Math.PI*2);
+      if(dens>40){ctx.fillStyle='#000';ctx.fill();} ctx.stroke();ctx.restore();
+    }
+    const clouds=Math.round((H/150)+comp*0.8);
+    for(let c=0;c<clouds;c++) cloud(40+rng()*(W-80),30+rng()*(H*0.4),(0.5+rng()*1.2));
+    const drops=Math.round((H/5)*dens*comp*0.05), angle=0.2+rng()*0.3;
+    ctx.lineWidth=0.6;
+    for(let i=0;i<drops;i++){
+      const x=rng()*W, y=rng()*(H-40), len=8+rng()*15;
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+Math.sin(angle)*len,y+Math.cos(angle)*len);ctx.stroke();
+    }
+    function lightning(x,y,len,depth) {
+      if(depth<=0||len<4) return;
+      const a=-Math.PI/2+(rng()-0.5)*0.8, ex=x+Math.cos(a)*len,ey=y+Math.sin(a)*len;
+      ctx.lineWidth=depth*1.2; ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(ex,ey);ctx.stroke();
+      if(rng()<0.5) lightning(ex,ey,len*0.55,depth-1); lightning(ex,ey,len*0.7,depth-1);
+    }
+    for(let l=0;l<Math.round(comp*0.5);l++) lightning(60+rng()*(W-120),40+rng()*H*0.2,40+rng()*30,Math.round(2+comp*0.4));
+    for(let r=5;r<60;r+=8){
+      ctx.lineWidth=0.4;ctx.beginPath(); ctx.ellipse(W/2+rng()*60-30,H-40,r*1.6,r*0.5,0,0,Math.PI*2);ctx.stroke();
+    }
+    drawLabelStrip(ctx,W,H,'WEATHER');
+  }
+},
+{ id:'maze', name:'MAZE', icon:'🌀', tag:'recursive path',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const cellSize=Math.max(6,Math.round(22-comp*1.5)), cols=Math.floor(W/cellSize), rows=Math.floor((H-24)/cellSize);
+    const walls=new Uint8Array(cols*rows*4).fill(1), visited=new Uint8Array(cols*rows);
+    function idx(c,r){return r*cols+c;}
+    function carve(c,r){
+      visited[idx(c,r)]=1;
+      const dirs=[[0,-1,0,2],[1,0,1,3],[ 0,1,2,0],[-1,0,3,1]];
+      for(let i=3;i>0;i--){const j=Math.floor(rng()*(i+1));[dirs[i],dirs[j]]=[dirs[j],dirs[i]];}
+      for(const [dc,dr,wd,wd2] of dirs){
+        const nc=c+dc,nr=r+dr;
+        if(nc>=0&&nc<cols&&nr>=0&&nr<rows&&!visited[idx(nc,nr)]){
+          walls[idx(c,r)*4+wd]=0; walls[idx(nc,nr)*4+wd2]=0; carve(nc,nr);
+        }
+      }
+    }
+    carve(Math.floor(rng()*cols),Math.floor(rng()*rows));
+    ctx.strokeStyle='#000'; ctx.lineWidth=dens>60?1.5:1;
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+      const x=c*cellSize,y=r*cellSize,base=idx(c,r)*4;
+      if(walls[base]){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+cellSize,y);ctx.stroke();}
+      if(walls[base+1]){ctx.beginPath();ctx.moveTo(x+cellSize,y);ctx.lineTo(x+cellSize,y+cellSize);ctx.stroke();}
+    }
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,rows*cellSize);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,rows*cellSize);ctx.lineTo(cols*cellSize,rows*cellSize);ctx.stroke();
+    drawLabelStrip(ctx,W,H,'MAZE');
+  }
+},
+{ id:'cosmos', name:'COSMOS', icon:'🔭', tag:'nebula stars',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    const img=ctx.getImageData(0,0,W,H);
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      const n=fbm(x/60,y/60,4), v=n>0.55?(n-0.55)*4*255:0, i=(y*W+x)*4;
+      img.data[i]=img.data[i+1]=img.data[i+2]=255-clamp(v,0,255); img.data[i+3]=255;
+    }
+    ditherFS(img,W,H); ctx.putImageData(img,0,0);
+    const nstars=Math.round((H/10)*dens*comp*0.1), stars=[];
+    ctx.fillStyle='#000';
+    for(let s=0;s<nstars;s++){
+      const sx=rng()*W,sy=rng()*(H-24), r=rng()<0.05?3:rng()<0.2?2:1;
+      stars.push([sx,sy,r]); ctx.beginPath();ctx.arc(sx,sy,r,0,Math.PI*2);ctx.fill();
+      if(r>1){
+        ctx.lineWidth=0.5; ctx.beginPath();ctx.moveTo(sx-r*3,sy);ctx.lineTo(sx+r*3,sy);
+        ctx.moveTo(sx,sy-r*3);ctx.lineTo(sx,sy+r*3);ctx.stroke();
+      }
+    }
+    const conLines=Math.round((H/50)*comp);
+    ctx.lineWidth=0.4;ctx.setLineDash([2,6]);
+    for(let l=0;l<conLines;l++){
+      if(stars.length<2) break;
+      const a=stars[Math.floor(rng()*stars.length)], b=stars[Math.floor(rng()*stars.length)];
+      if(Math.sqrt((b[0]-a[0])**2+(b[1]-a[1])**2)<80){
+        ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]); drawLabelStrip(ctx,W,H,'COSMOS');
+  }
+},
+{ id:'aura', name:'AURA', icon:'⭕', tag:'metaball mesh',
+  draw(ctx, W, H, rng, dens, comp) {
+    const img = ctx.createImageData(W, H), data = img.data;
+    const numBalls = Math.floor(3 + comp), balls = [];
+    for(let i=0; i<numBalls; i++) balls.push({x: rng()*W, y: rng()*H, r: (50+rng()*150)*(dens/50), s: rng()>0.5?1:-1});
+    const noiseScale = 50 + rng()*100, seedOffset = rng()*100;
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        let val = 0;
+        for(let b of balls) {
+          const dx = x - b.x, dy = y - b.y;
+          val += b.s * (b.r / (Math.sqrt(dx*dx + dy*dy) + 1));
+        }
+        val += (noise2(x/noiseScale, y/noiseScale, seedOffset) * 2 - 1) * (comp * 0.2);
+        val = (Math.sin(val) + 1) / 2;
+        const bw = val > bayerMatrix[y % 4][x % 4] ? 255 : 0, idx = (y * W + x) * 4;
+        data[idx] = bw; data[idx+1] = bw; data[idx+2] = bw; data[idx+3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0); drawLabelStrip(ctx, W, H, 'AURA', true);
+  }
+},
+{ id:'loom', name:'LOOM', icon:'〰', tag:'interwoven wave',
+  draw(ctx, W, H, rng, dens, comp) {
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,W,H); ctx.strokeStyle = '#000';
+    const numWaves = Math.floor(10 + dens*(H/200)), yStep = H / numWaves;
+    ctx.lineWidth = 0.5 + (comp * 0.2);
+    const freqs = Array.from({length: 4}, () => 0.01 + rng() * 0.04);
+    const amps =  Array.from({length: 4}, () => 10 + rng() * 40 * (comp/5));
+    for (let i = 0; i <= numWaves; i++) {
+      const baseY = i * yStep; ctx.beginPath();
+      for (let x = 0; x <= W; x += 2) {
+        let yOffset = Math.sin(x * freqs[0] + i*0.1) * amps[0] + Math.cos(x * freqs[1] - i*0.2) * amps[1];
+        if(comp > 5) yOffset += Math.sin(x * freqs[2] + Math.sin(i)) * amps[2];
+        x === 0 ? ctx.moveTo(x, baseY + yOffset) : ctx.lineTo(x, baseY + yOffset);
+      }
+      ctx.stroke();
+    }
+    if (dens > 60) {
+      const xStep = W / (numWaves/2);
+      for(let i=0; i<= W/xStep; i++) {
+          const baseX = i * xStep; ctx.beginPath();
+          for(let y = 0; y <= H; y+= 5) {
+              let xOffset = Math.sin(y * freqs[3] + i*0.5) * amps[3] * 0.2;
+              y===0 ? ctx.moveTo(baseX + xOffset, y) : ctx.lineTo(baseX + xOffset, y);
+          }
+          ctx.stroke();
+      }
+    }
+    drawLabelStrip(ctx, W, H, 'LOOM');
+  }
+}
+];
+
+// ════════════════════════════════════════════════════
+// UI & GENERATION LOGIC
+// ════════════════════════════════════════════════════
+let activeColl = COLLECTIONS[0].id;
+let currentSeedStr = ''; // Maintains stable seed during live-updates
+
+const canvas = document.getElementById('artCanvas');
+const ctxMain = canvas.getContext('2d');
+
+// DOM Elements
+const collList = document.getElementById('collList');
+const densitySlider = document.getElementById('densitySlider');
+const complexSlider = document.getElementById('complexSlider');
+const lengthSlider = document.getElementById('lengthSlider');
+const padSlider = document.getElementById('padSlider');
+const seedInput = document.getElementById('seedInput');
+const typoControls = document.getElementById('typoControls');
+const typoText = document.getElementById('typoText');
+const typoFont = document.getElementById('typoFont');
+
+// Stylish Name controls
+const nameControls = document.getElementById('nameControls');
+const nameText = document.getElementById('nameText');
+const nameFont = document.getElementById('nameFont');
+const nameStyleBtns = document.querySelectorAll('#nameStyleGrid .style-btn');
+let activeNameStyle = 'banner';
+
+// Thermal output controls
+const thermalBtns = document.querySelectorAll('#thermalToggle .toggle-btn');
+const threshSlider = document.getElementById('threshSlider');
+const thresholdRow = document.getElementById('thresholdRow');
+let thermalMode = 'crisp';
+
+const padColorToggleBtns = document.querySelectorAll('#padColorToggle .toggle-btn');
+const invertToggleBtns = document.querySelectorAll('#invertToggle .toggle-btn');
+let activePadColor = 'white';
+let activeInvert = false;
+
+// Scale computations (384px = 5.8cm width)
+const pxToCm = (px) => (px * (5.8 / 384)).toFixed(1) + 'cm';
+const pxToCmPad = (px) => (px * (5.8 / 384)).toFixed(2) + 'cm';
+
+// Build grid UI
+COLLECTIONS.forEach(c => {
+  const btn = document.createElement('button');
+  btn.className = 'coll-btn' + (c.id===activeColl?' active':'');
+  btn.innerHTML = `<span class="c-icon">${c.icon}</span><span class="c-name">${c.name}</span><span class="c-tag">${c.tag}</span>`;
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.coll-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeColl = c.id;
+    // Show/hide dynamic customizers
+    typoControls.classList.toggle('visible', c.id === 'typo');
+    nameControls.classList.toggle('visible', c.id === 'nametag');
+    renderArt();
+  });
+  collList.appendChild(btn);
+});
+
+// Initial dynamic-control visibility (nametag is default)
+typoControls.classList.toggle('visible', activeColl === 'typo');
+nameControls.classList.toggle('visible', activeColl === 'nametag');
+
+// Update value displays
+densitySlider.addEventListener('input', () => document.getElementById('densityVal').textContent = densitySlider.value + '%');
+complexSlider.addEventListener('input', () => document.getElementById('complexVal').textContent = complexSlider.value);
+lengthSlider.addEventListener('input', () => document.getElementById('lengthVal').textContent = pxToCm(lengthSlider.value));
+padSlider.addEventListener('input', () => document.getElementById('padVal').textContent = pxToCmPad(padSlider.value));
+threshSlider.addEventListener('input', () => document.getElementById('threshVal').textContent = threshSlider.value);
+
+// Live Render Engine (Debounced slightly for performance)
+let renderFrame;
+function scheduleRender() {
+  if (renderFrame) cancelAnimationFrame(renderFrame);
+  renderFrame = requestAnimationFrame(renderArt);
+}
+
+// Bind live updates
+[densitySlider, complexSlider, lengthSlider, padSlider, typoText, nameText, threshSlider, seedInput].forEach(el => {
+  el.addEventListener('input', scheduleRender);
+});
+typoFont.addEventListener('change', scheduleRender);
+nameFont.addEventListener('change', scheduleRender);
+
+// Name style selector
+nameStyleBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    nameStyleBtns.forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    activeNameStyle = e.target.dataset.val;
+    scheduleRender();
+  });
+});
+
+// Thermal output mode
+thermalBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    thermalBtns.forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    thermalMode = e.target.dataset.val;
+    thresholdRow.style.opacity = thermalMode === 'crisp' ? '1' : '0.35';
+    threshSlider.disabled = thermalMode !== 'crisp';
+    scheduleRender();
+  });
+});
+
+padColorToggleBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    padColorToggleBtns.forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    activePadColor = e.target.dataset.val;
+    scheduleRender();
+  });
+});
+
+invertToggleBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    invertToggleBtns.forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    activeInvert = e.target.dataset.val === 'invert';
+    scheduleRender();
+  });
+});
+
+function getSeed() {
+  const inputVal = seedInput.value.trim().toUpperCase();
+  if (inputVal) {
+    currentSeedStr = inputVal;
+    return hashStr(inputVal + activeColl);
+  }
+  if (!currentSeedStr) {
+    currentSeedStr = Math.random().toString(36).substring(2, 10).toUpperCase();
+  }
+  seedInput.placeholder = `RNG: ${currentSeedStr}`;
+  return hashStr(currentSeedStr + activeColl);
+}
+
+// Main rendering routine
+function renderArt() {
+  const seed = getSeed();
+  const rng = mulberry32(seed);
+  
+  const density = parseInt(densitySlider.value);
+  const complexity = parseInt(complexSlider.value);
+  const totalW = 384;
+  const totalH = parseInt(lengthSlider.value);
+  const padding = parseInt(padSlider.value);
+  
+  const artW = totalW - (padding * 2);
+  const artH = totalH - (padding * 2);
+  
+  canvas.width = totalW; canvas.height = totalH;
+  ctxMain.imageSmoothingEnabled = false;
+
+  // Background pad
+  ctxMain.fillStyle = activePadColor === 'black' ? '#000' : '#fff';
+  ctxMain.fillRect(0, 0, totalW, totalH);
+
+  if (artW > 0 && artH > 0) {
+    // Offscreen rendering
+    const off = document.createElement('canvas');
+    off.width = artW; off.height = artH;
+    const octx = off.getContext('2d');
+    octx.imageSmoothingEnabled = false;
+    
+    const coll = COLLECTIONS.find(c=>c.id===activeColl);
+    coll.draw(octx, artW, artH, rng, density, complexity, typoText.value, typoFont.value, nameText.value, activeNameStyle);
+    
+    // Invert algorithm if needed
+    if (activeInvert) {
+      const img = octx.getImageData(0,0,artW,artH);
+      for (let i=0; i<img.data.length; i+=4) {
+        img.data[i] = 255 - img.data[i];
+        img.data[i+1] = 255 - img.data[i+1];
+        img.data[i+2] = 255 - img.data[i+2];
+      }
+      octx.putImageData(img,0,0);
+    }
+    
+    // Composite
+    ctxMain.drawImage(off, padding, padding);
+    
+    // ── THERMAL OUTPUT PASS: force clean 1-bit black/white ──
+    // Thermal heads only fire on/off, so gray pixels print muddy.
+    // This guarantees every pixel is pure #000 or #fff = crisp prints.
+    if (thermalMode !== 'raw') {
+      const full = ctxMain.getImageData(0, 0, totalW, totalH);
+      if (thermalMode === 'dither') {
+        ditherFS(full, totalW, totalH);
+      } else { // crisp threshold
+        thresholdImg(full, totalW, totalH, parseInt(threshSlider.value));
+      }
+      ctxMain.putImageData(full, 0, 0);
+    }
+    
+    // Meta updates
+    document.getElementById('metaColl').textContent = coll.id;
+    document.getElementById('metaSeed').textContent = currentSeedStr;
+    document.getElementById('metaH').textContent = (totalH * (5.8 / 384)).toFixed(1);
+  }
+}
+
+// Generate New (forces new random seed)
+document.getElementById('genBtn').addEventListener('click', () => {
+  seedInput.value = '';
+  currentSeedStr = '';
+  renderArt();
+});
+
+document.getElementById('seedRoll').addEventListener('click', () => {
+  seedInput.value = '';
+  currentSeedStr = '';
+  renderArt();
+});
+
+// Download (native 384px = true thermal resolution)
+document.getElementById('dlBtn').addEventListener('click', () => {
+  const a = document.createElement('a');
+  const tag = activeColl === 'nametag'
+    ? (nameText.value.trim().toUpperCase().replace(/[^A-Z0-9]+/g,'-') || 'NAME')
+    : currentSeedStr;
+  a.download = `THERMAL-PRESS-${activeColl.toUpperCase()}-${tag}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+});
+
+// Print directly at 58mm with no margins
+document.getElementById('printBtn').addEventListener('click', () => {
+  const img = document.getElementById('printImg');
+  let done = false;
+  const go = () => { if (done) return; done = true; window.print(); };
+  img.onload = go;
+  img.src = canvas.toDataURL('image/png');
+  // Fallback for browsers that decode data URLs synchronously
+  if (img.complete && img.naturalWidth) go();
+});
+
+// Initialize
+renderArt();
+
+// PWA registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// Install flow: Android/desktop prompt + iOS guidance
+let deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+const iosTip = document.getElementById('iosTip');
+const iosTipClose = document.getElementById('iosTipClose');
+
+function isIos() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function isInStandaloneMode() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.hidden = false;
+});
+
+installBtn.addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch (_) {}
+    deferredPrompt = null;
+    installBtn.hidden = true;
+    return;
+  }
+  if (isIos() && !isInStandaloneMode()) {
+    iosTip.classList.add('show');
+  }
+});
+
+iosTipClose.addEventListener('click', () => {
+  iosTip.classList.remove('show');
+  localStorage.setItem('iosInstallTipDismissed', '1');
+});
+
+window.addEventListener('appinstalled', () => {
+  installBtn.hidden = true;
+  deferredPrompt = null;
+});
+
+if (isIos() && !isInStandaloneMode() && !localStorage.getItem('iosInstallTipDismissed')) {
+  installBtn.hidden = false;
+}
+</script>
+</body>
+</html>
