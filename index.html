@@ -77,6 +77,12 @@
     min-height: 36px;
   }
   .btn-mobile-panel:hover { border-color: var(--accent); color: #fff; }
+  .style-panel {
+    position: static;
+  }
+  .style-backdrop {
+    display: none;
+  }
   .btn-install {
     background: transparent;
     border: 1px solid #444;
@@ -336,18 +342,34 @@
       border-top: 1px solid var(--border);
       overflow: visible;
       padding-bottom: 90px;
-      transition: max-height 0.25s ease, opacity 0.2s ease, transform 0.2s ease;
-      max-height: 2000px;
-      opacity: 1;
-      transform: translateY(0);
     }
-    body.mobile-sidebar-collapsed sidebar {
-      max-height: 0;
-      opacity: 0;
-      overflow: hidden;
-      transform: translateY(-8px);
-      border-top: none;
-      padding-bottom: 0;
+    .style-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: min(82vw, 340px);
+      height: 100dvh;
+      z-index: 320;
+      background: var(--ui-bg);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      transform: translateX(-104%);
+      transition: transform 0.22s ease;
+      box-shadow: 18px 0 30px rgba(0,0,0,0.5);
+      padding-bottom: 24px;
+    }
+    body.mobile-style-open .style-panel {
+      transform: translateX(0);
+    }
+    .style-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 310;
+      display: none;
+    }
+    body.mobile-style-open .style-backdrop {
+      display: block;
     }
     .panel-section { padding: 14px 12px; }
     .coll-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -406,14 +428,14 @@
     <span>Complete Generative Suite</span>
   </div>
   <div class="top-actions">
-    <button id="mobilePanelBtn" class="btn-mobile-panel">Show Options</button>
+    <button id="mobilePanelBtn" class="btn-mobile-panel">Styles</button>
     <button id="installBtn" class="btn-install" hidden>Install App</button>
   </div>
 </header>
 
 <div class="layout">
   <sidebar>
-    <div class="panel-section">
+    <div class="panel-section style-panel" id="stylePanel">
       <div class="section-label">Generator Matrix (19)</div>
       <div class="coll-grid" id="collList"></div>
     </div>
@@ -553,6 +575,7 @@
 </div>
 
 <div id="printSurface"><img id="printImg" alt=""></div>
+<div class="style-backdrop" id="styleBackdrop"></div>
 <div class="ios-tip" id="iosTip">
   <p>Add to Home Screen on iPhone: tap Share, then choose "Add to Home Screen".</p>
   <button id="iosTipClose">Got It</button>
@@ -1386,6 +1409,9 @@ COLLECTIONS.forEach(c => {
     typoControls.classList.toggle('visible', c.id === 'typo');
     nameControls.classList.toggle('visible', c.id === 'nametag');
     renderArt();
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      document.body.classList.remove('mobile-style-open');
+    }
   });
   collList.appendChild(btn);
 });
@@ -1582,6 +1608,7 @@ if ('serviceWorker' in navigator) {
 let deferredPrompt = null;
 const installBtn = document.getElementById('installBtn');
 const mobilePanelBtn = document.getElementById('mobilePanelBtn');
+const styleBackdrop = document.getElementById('styleBackdrop');
 const iosTip = document.getElementById('iosTip');
 const iosTipClose = document.getElementById('iosTipClose');
 
@@ -1629,23 +1656,20 @@ if (isIos() && !isInStandaloneMode() && !localStorage.getItem('iosInstallTipDism
 function syncMobileSidebarState() {
   const isMobile = window.matchMedia('(max-width: 900px)').matches;
   if (isMobile) {
-    if (!document.body.dataset.mobileSidebarInit) {
-      document.body.classList.add('mobile-sidebar-collapsed');
-      document.body.dataset.mobileSidebarInit = '1';
-    }
     mobilePanelBtn.style.display = 'inline-flex';
-    mobilePanelBtn.textContent = document.body.classList.contains('mobile-sidebar-collapsed') ? 'Show Options' : 'Hide Options';
   } else {
-    document.body.classList.remove('mobile-sidebar-collapsed');
+    document.body.classList.remove('mobile-style-open');
     mobilePanelBtn.style.display = 'none';
-    mobilePanelBtn.textContent = 'Show Options';
-    delete document.body.dataset.mobileSidebarInit;
   }
 }
 
 mobilePanelBtn.addEventListener('click', () => {
-  document.body.classList.toggle('mobile-sidebar-collapsed');
-  mobilePanelBtn.textContent = document.body.classList.contains('mobile-sidebar-collapsed') ? 'Show Options' : 'Hide Options';
+  if (!window.matchMedia('(max-width: 900px)').matches) return;
+  document.body.classList.toggle('mobile-style-open');
+});
+
+styleBackdrop.addEventListener('click', () => {
+  document.body.classList.remove('mobile-style-open');
 });
 
 window.addEventListener('resize', syncMobileSidebarState);
