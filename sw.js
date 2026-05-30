@@ -1,7 +1,7 @@
 ﻿const CACHE_NAME = 'thermal-press-v1';
 const APP_SHELL = [
   './',
-  './thermal.html',
+  './index.html',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png'
@@ -33,7 +33,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
           return response;
         })
-        .catch(() => caches.match('./thermal.html'));
+        .catch(() => caches.match('./index.html'));
     })
   );
 });

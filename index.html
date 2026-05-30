@@ -62,6 +62,21 @@
     gap: 8px;
     align-items: center;
   }
+  .btn-mobile-panel {
+    display: none;
+    background: transparent;
+    border: 1px solid #444;
+    color: #ddd;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    padding: 8px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    text-transform: uppercase;
+    min-height: 36px;
+  }
+  .btn-mobile-panel:hover { border-color: var(--accent); color: #fff; }
   .btn-install {
     background: transparent;
     border: 1px solid #444;
@@ -290,6 +305,7 @@
     header h1 { font-size: 1.6rem; }
     header span { font-size: 0.58rem; }
     .top-actions { width: 100%; justify-content: flex-end; }
+    .btn-mobile-panel { display: inline-flex; align-items: center; justify-content: center; }
     .layout {
       display: flex;
       flex-direction: column;
@@ -320,6 +336,18 @@
       border-top: 1px solid var(--border);
       overflow: visible;
       padding-bottom: 90px;
+      transition: max-height 0.25s ease, opacity 0.2s ease, transform 0.2s ease;
+      max-height: 2000px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    body.mobile-sidebar-collapsed sidebar {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transform: translateY(-8px);
+      border-top: none;
+      padding-bottom: 0;
     }
     .panel-section { padding: 14px 12px; }
     .coll-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -378,6 +406,7 @@
     <span>Complete Generative Suite</span>
   </div>
   <div class="top-actions">
+    <button id="mobilePanelBtn" class="btn-mobile-panel">Show Options</button>
     <button id="installBtn" class="btn-install" hidden>Install App</button>
   </div>
 </header>
@@ -461,8 +490,8 @@
       <div class="section-label">Hardware Format</div>
       <div class="controls-grid">
         <div class="ctrl-row">
-          <header><label>Print Length</label><span class="ctrl-val" id="lengthVal">12.1cm</span></header>
-          <input type="range" id="lengthSlider" min="200" max="2400" step="50" value="800">
+          <header><label>Print Length</label><span class="ctrl-val" id="lengthVal">6.0cm</span></header>
+          <input type="range" id="lengthSlider" min="200" max="2400" step="50" value="400">
         </div>
         <div class="ctrl-row">
           <header><label>Padding / Margin</label><span class="ctrl-val" id="padVal">0.30cm</span></header>
@@ -518,7 +547,7 @@
     <div class="meta-row">
       <span>algo: <b id="metaColl">—</b></span>
       <span>seed: <b id="metaSeed">—</b></span>
-      <span><b>5.8</b> × <b id="metaH">12.1</b>cm</span>
+      <span><b>5.8</b> × <b id="metaH">6.0</b>cm</span>
     </div>
   </div>
 </div>
@@ -1552,6 +1581,7 @@ if ('serviceWorker' in navigator) {
 // Install flow: Android/desktop prompt + iOS guidance
 let deferredPrompt = null;
 const installBtn = document.getElementById('installBtn');
+const mobilePanelBtn = document.getElementById('mobilePanelBtn');
 const iosTip = document.getElementById('iosTip');
 const iosTipClose = document.getElementById('iosTipClose');
 
@@ -1594,6 +1624,32 @@ window.addEventListener('appinstalled', () => {
 if (isIos() && !isInStandaloneMode() && !localStorage.getItem('iosInstallTipDismissed')) {
   installBtn.hidden = false;
 }
+
+// Mobile collapsible options panel
+function syncMobileSidebarState() {
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  if (isMobile) {
+    if (!document.body.dataset.mobileSidebarInit) {
+      document.body.classList.add('mobile-sidebar-collapsed');
+      document.body.dataset.mobileSidebarInit = '1';
+    }
+    mobilePanelBtn.style.display = 'inline-flex';
+    mobilePanelBtn.textContent = document.body.classList.contains('mobile-sidebar-collapsed') ? 'Show Options' : 'Hide Options';
+  } else {
+    document.body.classList.remove('mobile-sidebar-collapsed');
+    mobilePanelBtn.style.display = 'none';
+    mobilePanelBtn.textContent = 'Show Options';
+    delete document.body.dataset.mobileSidebarInit;
+  }
+}
+
+mobilePanelBtn.addEventListener('click', () => {
+  document.body.classList.toggle('mobile-sidebar-collapsed');
+  mobilePanelBtn.textContent = document.body.classList.contains('mobile-sidebar-collapsed') ? 'Show Options' : 'Hide Options';
+});
+
+window.addEventListener('resize', syncMobileSidebarState);
+syncMobileSidebarState();
 </script>
 </body>
 </html>
